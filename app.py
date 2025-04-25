@@ -1,45 +1,45 @@
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 st.set_page_config(page_title='RedeCRIS Mulher', layout='wide')
-st.title('RedeCRIS Mulher')
-st.subheader('Conectando dados, pesquisas e políticas no enfrentamento à violência de gênero.')
 
+# Título e introdução
+st.markdown("<h1 style='color:#6a1b9a;'>RedeCRIS Mulher</h1>", unsafe_allow_html=True)
+st.markdown("### Conectando dados, pesquisas e políticas no enfrentamento à violência de gênero")
+
+# Carregar base
 df = pd.read_csv('base_geral.csv')
 
-with st.sidebar:
-    st.header('Filtros')
-    grupo = st.selectbox('Grupo de Pesquisa', ['Todos'] + sorted(df['Grupo'].dropna().unique()))
-    pesquisador = st.selectbox('Pesquisador(a)', ['Todos'] + sorted(df['Pesquisador'].dropna().unique()))
-    instituicao = st.selectbox('Instituição', ['Todas'] + sorted(df['Instituicao'].dropna().unique()))
-    tipo = st.selectbox('Tipo de Produção', ['Todos'] + sorted(df['Tipo'].dropna().unique()))
-    tema = st.selectbox('Tema', ['Todos'] + sorted(df['Tema'].dropna().unique()))
-    ano = st.selectbox('Ano', ['Todos'] + sorted(df['Ano'].dropna().astype(str).unique()))
+# Filtros laterais
+st.sidebar.header("Filtros")
 
-filtered = df.copy()
+grupo = st.sidebar.selectbox("Grupo", ['Todos'] + sorted(df['Grupo'].dropna().unique()))
+pesquisador = st.sidebar.selectbox("Pesquisador(a)", ['Todos'] + sorted(df['Pesquisador'].dropna().unique()))
+instituicao = st.sidebar.selectbox("Instituição", ['Todas'] + sorted(df['Instituicao'].dropna().unique()))
+tipo = st.sidebar.selectbox("Tipo de Produção", ['Todos'] + sorted(df['Tipo'].dropna().unique()))
+tema = st.sidebar.selectbox("Tema", ['Todos'] + sorted(df['Tema'].dropna().unique()))
+ano = st.sidebar.selectbox("Ano", ['Todos'] + sorted(df['Ano'].dropna().astype(str).unique()))
+
+# Aplicar filtros
+filtro = df.copy()
 if grupo != 'Todos':
-    filtered = filtered[filtered['Grupo'] == grupo]
+    filtro = filtro[filtro['Grupo'] == grupo]
 if pesquisador != 'Todos':
-    filtered = filtered[filtered['Pesquisador'] == pesquisador]
+    filtro = filtro[filtro['Pesquisador'] == pesquisador]
 if instituicao != 'Todas':
-    filtered = filtered[filtered['Instituicao'] == instituicao]
+    filtro = filtro[filtro['Instituicao'] == instituicao]
 if tipo != 'Todos':
-    filtered = filtered[filtered['Tipo'] == tipo]
+    filtro = filtro[filtro['Tipo'] == tipo]
 if tema != 'Todos':
-    filtered = filtered[filtered['Tema'] == tema]
+    filtro = filtro[filtro['Tema'] == tema]
 if ano != 'Todos':
-    filtered = filtered[filtered['Ano'].astype(str) == ano]
+    filtro = filtro[filtro['Ano'].astype(str) == ano]
 
-st.dataframe(filtered)
+# Exibir resultados
+st.markdown("### Resultados")
+st.dataframe(filtro, use_container_width=True)
 
-st.subheader('Distribuição por UF')
-if 'UF' in filtered.columns:
-    mapa = filtered.groupby('UF').size().reset_index(name='Contagem')
-    fig = px.choropleth(locations=mapa['UF'], locationmode='ISO-3166-2', color=mapa['Contagem'],
-                        scope='south america', title='Produção por Estado')
-    st.plotly_chart(fig, use_container_width=True)
-
-st.download_button("Exportar dados filtrados", data=filtered.to_csv(index=False).encode('utf-8'),
+# Botão para exportar CSV
+st.download_button("Exportar dados filtrados", data=filtro.to_csv(index=False).encode('utf-8'),
                    file_name='redecris_mulher_filtrado.csv', mime='text/csv')
